@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 
-struct Node {
+struct Node
+{
     int a;
     char *c;
-    //c = (char*)malloc(256 * sizeof(char));
     struct Node *left, *right;
 };
 
-void out(struct Node *t)
+int convert (int n)
 {
-    printf("%d %c\n",t->a,t->c);
 }
 
 void bubble_sort(struct Node **mas, int n)
@@ -48,11 +48,12 @@ struct Node* join (struct Node* left, struct Node* right)
 
 int main()
 {
-    char** dict = (char**)malloc(256 * sizeof(char*));
+    char* dict = (char*)malloc(256 * sizeof(char));
 
-    char* filename   = "input.txt", c;
+    char *inputfilename = "input.txt", *outputfilename = "output.txt", c;
 
     FILE* inputfile;
+    FILE* outputfile;
 
     struct Node** tree = (struct Node**)malloc(256 * sizeof(struct Node*));
 
@@ -60,11 +61,12 @@ int main()
     for (int i = 20; i < 256; ++i)
         frequency[i] = 0;
 
-    if ((inputfile = fopen(filename, "rb")) == NULL)
+    if ((inputfile = fopen(inputfilename, "rb")) == NULL)
     {
         printf ("Enter correct filename to read!\n");
         return 0;
     }
+    outputfile = fopen(outputfilename, "wb");
 
     while((c = fgetc(inputfile)) != EOF)
     {
@@ -74,40 +76,20 @@ int main()
     int k = 0;
 	for (int i = 20; i < 256; ++i)
     {
-        //printf ("%d %d\n",i,frequency[i]);
         if (frequency[i] != 0)
         {
-            //printf ("%c %d\n",i,frequency[i]);
             struct Node *p = (struct Node*)malloc(sizeof(struct Node));
             p->c = (unsigned char)i;
             p->a = frequency[i];
             p->right = NULL;
             tree[k] = p;
-            //printf ("%c %d\n",tree[k]->c, tree[k]->a);
             k++;
         }
     }
 
-    void next (struct Node* vertex, int t)
-    {
-        if (vertex->right == NULL)
-        {
-            printf("%c %d\n", vertex->c, t);
-            dict[(int)vertex->c] = t;
-            return;
-        }
-        next (vertex->right, t * 2 + 1);
-        next (vertex->left, t * 2);
-    }
-
     bubble_sort (tree, k);
-    //printf ("lol");
 
-    for (int i = 0; i < k; ++i)
-    {
-        out(tree[i]);
-    }
-
+    int size_of_pair_mas = 0;
 
     while (k != 1)
     {
@@ -116,6 +98,54 @@ int main()
         bubble_sort (tree, k);
     }
 
+    void next (struct Node* vertex, int t)
+    {
+        if (vertex->right == NULL)
+        {
+            dict[(int)vertex->c] = t;
+            printf("%c %d %d\n", vertex->c, dict[(int)vertex->c], (int)vertex->c);
+            size_of_pair_mas++;
+            return;
+        }
+        next (vertex->right, t * 2 + 1);
+        next (vertex->left, t * 2);
+    }
+
     next(tree[0], 1);
-    //out(tree[0]);
+
+    fseek (inputfile, 0, SEEK_SET);
+
+    int count = 0, number = 1, overall = 0;
+    char* str = (char*)malloc(8 * sizeof(char));
+    strcpy(str, "");
+
+    while((c = fgetc(inputfile)) != EOF)
+    {
+        int x = dict[c];
+        //printf ("%d", x);
+        while (x != 1)
+        {
+            if (x % 2 == 1)
+                strcat(str, "1");
+            else
+                strcat(str, "0");
+            printf ("%s\n", str);
+            x = x >> 1;
+            count += 1;
+            overall += 1;
+            if (count == 8)
+            {
+                int sum = 0;
+                for (int i = 0; i < 8; ++i)
+                    sum += (str[i] - '0') * pow(2, i);
+                fprintf (outputfile, "%c", (char)sum);
+                count = 0;
+                //printf ("%s\n", str);
+                strcpy(str, "");
+            }
+        }
+        //printf("%d\n", x);
+	}
+
+    fprintf (outputfile, "%d", overall);
 }
