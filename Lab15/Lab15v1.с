@@ -1,0 +1,339 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+struct Node
+{
+    int a;
+    char *c;
+    struct Node *left, *right;
+};
+
+int reverse (int x)
+{
+    int ans = 0;
+    for (int i = 0; i < 8; ++i)
+    {
+        ans = ans*2 + x%2;
+        x /= 2;
+    }
+    return ans;
+}
+
+int convert (int n)
+{
+    int k = 0, ans = 0;
+    while (n != 1)
+    {
+        ans = ans * 2 + n % 2;
+        n /= 2;
+        k++;
+    }
+    ans += pow(2, k);
+    return ans;
+}
+
+void bubble_sort(struct Node **mas, int n)
+{
+    int f = 1;
+    while (f)
+    {
+        f = 0;
+        for (int i = 0; i < n - 1; ++i)
+        {
+            if (mas[i]->a < mas[i + 1]->a)
+            {
+                struct Node* c = (struct Node*)malloc(sizeof(struct Node));
+                c = mas[i];
+                mas[i] = mas[i + 1];
+                mas[i + 1] = c;
+                f = 1;
+            }
+        }
+    }
+}
+
+struct Node* join (struct Node* left, struct Node* right)
+{
+    struct Node* c = (struct Node*)malloc(sizeof(struct Node));
+    c->right = right;
+    c->left = left;
+    c->a = right->a + left->a;
+    c->c = -1;
+    return c;
+};
+
+void Compression (FILE* inputFile, FILE* outputFile)
+{
+    int dictionary[256];
+    for (int i = 0; i < 256; ++i)
+        dictionary[i] = 0;
+
+    int* dict = (int*)malloc(256 * sizeof(int));
+    int frequency[256];
+    for (int i = 0; i < 256; ++i)
+        frequency[i] = 0;
+    int c;
+
+    struct Node** tree = (struct Node**)malloc(256 * sizeof(struct Node*));
+
+    while((c = getc(inputFile)) != EOF)
+		frequency[(unsigned char)c]++;
+
+    int k = 0;
+	for (int i = 0; i < 256; ++i)
+    {
+        if (frequency[i] != 0)
+        {
+            struct Node *p = (struct Node*)malloc(sizeof(struct Node));
+            p->c = (unsigned char)i;
+            p->a = frequency[i];
+            p->right = NULL;
+            tree[k] = p;
+            k++;
+        }
+    }
+    int countOfLiters = k;
+
+    bubble_sort (tree, k);
+
+    while (k != 1)
+    {
+        bubble_sort (tree, k);
+        tree[k-2] = join(tree[k - 2], tree[k - 1]);
+        k--;
+    }
+
+    void next(struct Node* vertex, int t)
+    {
+        if (vertex->right == NULL)
+        {
+            dict[(int)vertex->c] = t;
+            dictionary[t] = (int)vertex->c;
+            return;
+        }
+        next (vertex->right, t * 2 + 1);
+        next (vertex->left, t * 2);
+    }
+
+    next(tree[0], 1);
+
+    fseek (inputFile, 0, SEEK_SET);
+
+    putc (countOfLiters, outputFile);
+    for (int i = 0; i < 256; ++i)
+    {
+
+        if (frequency[i] != 0)
+        {
+            putc (i, outputFile);
+            putc (dict[i], outputFile);
+        }
+    }
+
+    int sum = 0, count = 0;
+    while((c = getc(inputFile)) != EOF)
+    {
+        int x = convert(dict[c]);
+        //printf ("%d\n", x);
+        while (x != 1)
+        {
+            sum += (x % 2) * pow(2, 7 - count);
+            x = x >> 1;
+            count += 1;
+            if (count == 8)
+            {
+                putc ((char)sum, outputFile);
+                printf ("%d\n", sum);
+                count = 0;
+                sum = 0;
+            }
+        }
+	}
+
+    if (count != 0)
+    {
+        putc ((char)sum, outputFile);
+    }
+
+	putc (8 - count, outputFile);
+
+    fclose(inputFile);
+    fclose(outputFile);
+    return;
+}
+
+void Create(char* arcname, int filecount, char* files[])
+{
+    int i;
+    int temp;
+    FILE* arcfile = fopen(arcname, "wb");
+    FILE* file;
+    unsigned long long int nameandsize[128];
+    for (i = 4; i < filecount; i++)
+    {
+        file = fopen(files[i], "rb");
+        if (file == NULL)
+            continue;
+        fseek(file, 0, SEEK_END);
+        nameandsize[i - 4] = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        fclose(file);
+    }
+    for (i = 0; i < filecount - 4; i++)
+        fprintf(arcfile, "< %s : %llu >", files[i + 4], nameandsize[i]);
+    fprintf(arcfile, "\n");
+    for (i = 4; i < filecount; i++)
+    {
+        file = fopen(files[i], "rb");
+        if (file == NULL)
+        {
+            printf("File not added. ERROR. You're trying use a non-existent file\n");
+            continue;
+        }
+        else
+        {
+            printf("File added\n");
+        }
+        while ((temp = getc(file)) != EOF)
+            putc(temp, arcfile);
+        fclose(file);
+    }
+    printf("\n + Creating sucssess + \n");
+
+}
+
+void Extract(char* arcname)
+{
+    FILE* arch = fopen(arcname, "rb+wb");
+    unsigned long long int  now_position = 0;
+    unsigned long long int  start_position = 0;
+    int c;
+    while ((c = getc(arch)) != EOF) {
+        start_position++;
+        if (c == '\n')
+	        break;
+    }
+    fseek(arch, 0, SEEK_SET);
+    char filename[128] = {0};
+    unsigned long long int  filesize;
+    FILE *file;
+    while (fscanf(arch, "< %s : %llu >", filename, &filesize) != 0) {
+        file = fopen(filename, "wb");
+        if (file == NULL)
+			break;
+        now_position = ftell(arch);
+        fseek(arch, start_position, SEEK_SET);
+        start_position += filesize;
+        while (filesize-- > 0)
+            putc((c = getc(arch)), file);
+        fseek(arch, now_position, SEEK_SET);
+        fclose(file);
+    }
+	printf("\n + Unzipping sucssess + \n");
+}
+
+
+void Decoding (FILE* archive, FILE* decodedFile)
+{
+    int dictionary[256];
+    for (int i = 0; i < 256; ++i)
+        dictionary[i] = 0;
+    char* ans[256];
+    strcpy (ans, "");
+    int n = fgetc(archive);
+    for (int i = 0; i < n; ++i)
+    {
+        int x = getc (archive);
+        int y = getc (archive);
+        dictionary[y] = x;
+    }
+    int ft[2], t = 1;
+    int c = getc(archive);
+    ft[1] = c;
+    c = fgetc(archive);
+    while(1)
+    {
+        ft[0] = ft[1];
+        ft[1] = c;
+        c = getc(archive);
+        if (c == EOF) break;
+		int x = (unsigned char)ft[0];
+		x = reverse(x);
+		for (int i = 0; i < 8; ++i)
+        {
+            t = t*2 + x%2;
+            x /= 2;
+            if (dictionary[t] != 0)
+            {
+                char* ch[1];
+                ch[0] = (char*)dictionary[t];
+                strcat (ans, ch);
+                putc (dictionary[t], decodedFile);
+                t = 1;
+            }
+        }
+	}
+
+    int x = (unsigned char)ft[0];
+    x = reverse(x);
+	for (int i = 0; i < 8 - (ft[1] % 8); ++i)
+        {
+            t = t*2 + x%2;
+            x /= 2;
+            if (dictionary[t] != 0)
+            {
+                char* ch[1];
+                ch[0] = (char*)dictionary[t];
+                //strcat (ans, ch);
+                putc (dictionary[t], decodedFile);
+                t = 1;
+            }
+        }
+    fclose (archive);
+    fclose (decodedFile);
+    return;
+}
+
+int main(int argc, char* argv[])
+{
+    char *inputFileName = "input.txt",
+        *outputFileName = "output.txt",
+        *archiveName = "output.txt",
+        *fileNameToDecode = "input1.txt";
+
+    FILE* inputFile;
+    FILE* outputFile;
+    FILE* archive;
+    FILE* decodedFile;
+
+    for (int i = 0; i < argc; ++i)
+    {
+        if (!strcmp("--file", argv[i]))
+        {
+            archiveName = argv[i + 1];
+        }
+        if (!strcmp("--create", argv[i]))
+        {
+            //archive = open(archiveName, "wb");
+            Create (archiveName, argc, argv);
+        }
+        if(!strcmp("--extract", argv[i]))
+        {
+            Extract(archiveName);
+        }
+    }
+
+    /*
+    outputFile = fopen(outputFileName, "wb");
+
+    Compression (inputFile, outputFile);
+
+    archive = fopen (archiveName, "rb");
+    decodedFile = fopen (fileNameToDecode, "wb");
+
+    Decoding (archive, decodedFile);
+    */
+    return 0;
+}
