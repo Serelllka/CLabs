@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -149,19 +150,19 @@ void Compression (char* inputFileName, char* outputFileName)
     FILE* inputFile = fopen (inputFileName, "rb");
     FILE* outputFile = fopen (outputFileName, "wb");
 
-    int* dict = (int*)malloc(256 * sizeof(int));
-    int frequency[256];
-    for (int i = 0; i < 256; ++i)
+    int* dict = (int*)malloc(10000 * sizeof(int));
+    int frequency[10000];
+    for (int i = 0; i < 10000; ++i)
         frequency[i] = 0;
     int c;
 
-    struct Node** tree = (struct Node**)malloc(256 * sizeof(struct Node*));
+    struct Node** tree = (struct Node**)malloc(10000 * sizeof(struct Node*));
 
     while((c = getc(inputFile)) != EOF)
 		frequency[(unsigned char)c]++;
 
     int k = 0;
-	for (int i = 0; i < 256; ++i)
+	for (int i = 0; i < 10000; ++i)
     {
         if (frequency[i] != 0)
         {
@@ -205,7 +206,8 @@ void Compression (char* inputFileName, char* outputFileName)
         if (frequency[i] != 0)
         {
             putc (i, outputFile);
-            putc (dict[i], outputFile);
+            putc (dict[i] / 256, outputFile);
+            putc (dict[i] % 256, outputFile);
         }
     }
 
@@ -237,7 +239,7 @@ void Compression (char* inputFileName, char* outputFileName)
 
     fclose(inputFile);
     fclose(outputFile);
-    printf("\n + Compressing sucssess + \n");
+    printf("Compressed\n");
     return;
 }
 
@@ -246,8 +248,8 @@ void Decoding (char* archiveName, char* fileNameToDecode)
     printf ("%s\n", archiveName);
     FILE* archive = fopen (archiveName, "rb");
     FILE* decodedFile = fopen (fileNameToDecode, "wb");
-    int dictionary[256];
-    for (int i = 0; i < 256; ++i)
+    int dictionary[100000];
+    for (int i = 0; i < 100000; ++i)
         dictionary[i] = 0;
     char* ans[256];
     strcpy (ans, "");
@@ -256,8 +258,8 @@ void Decoding (char* archiveName, char* fileNameToDecode)
     {
         int x = getc (archive);
         int y = getc (archive);
-        printf ("%c %d\n", x, y);
-        dictionary[y] = x;
+        int z = getc (archive);
+        dictionary[y * 256 + z] = x;
     }
     int ft[2], t = 1;
     int c = getc(archive);
@@ -270,20 +272,15 @@ void Decoding (char* archiveName, char* fileNameToDecode)
         c = getc(archive);
         if (c == EOF) break;
 		int x = (unsigned char)ft[0];
-		printf("%d\n", x);
 		x = reverse(x);
-		printf("%d\n", x);
 		for (int i = 0; i < 8; ++i)
         {
             t = t*2 + x%2;
-            printf("%d\n", t);
             x /= 2;
             if (dictionary[t] != 0)
             {
                 char* ch[1];
-
                 ch[0] = (char*)dictionary[t];
-                strcat (ans, ch);
                 putc (dictionary[t], decodedFile);
                 t = 1;
             }
@@ -304,6 +301,7 @@ void Decoding (char* archiveName, char* fileNameToDecode)
                 t = 1;
             }
         }
+    printf("Decoded\n");
     fclose (archive);
     fclose (decodedFile);
     return;
@@ -315,6 +313,10 @@ int main(int argc, char* argv[])
         *fileNameToDecode = "util/output.af",
         *companationFileName = "util/companation.af";
 
+    /**
+    Compression (companationFileName, archiveName);
+    Decoding (archiveName, fileNameToDecode);
+    **/
 
     for (int i = 0; i < argc; ++i)
     {
