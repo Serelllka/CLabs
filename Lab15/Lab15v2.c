@@ -17,7 +17,6 @@ int reverse (int x)
     for (int i = 0; i < 8; ++i)
     {
         ans = ans * 2 + x % 2;
-        //ans = ans * 2 + x % 2;
         x /= 2;
     }
     return ans;
@@ -174,6 +173,7 @@ void Compression (char* inputFileName, char* outputFileName)
             k++;
         }
     }
+
     int countOfLiters = k;
     bubble_sort (tree, k);
 
@@ -197,16 +197,22 @@ void Compression (char* inputFileName, char* outputFileName)
 
     next(tree[0], 1);
 
+    for (int i = 0; i < 256; ++i)
+        printf ("-%d %d\n", i, dict[i]);
+
     fseek (inputFile, 0, SEEK_SET);
 
-    putc (countOfLiters, outputFile);
+    putc (countOfLiters - 1, outputFile);
     for (int i = 0; i < 256; ++i)
     {
 
         if (frequency[i] != 0)
         {
+            printf ("%d %d\n", i, dict[i]);
             putc (i, outputFile);
-            putc (dict[i] / 256, outputFile);
+
+            putc (dict[i] / 256 / 256, outputFile);
+            putc (dict[i] / 256 % 256, outputFile);
             putc (dict[i] % 256, outputFile);
         }
     }
@@ -215,7 +221,6 @@ void Compression (char* inputFileName, char* outputFileName)
     while((c = getc(inputFile)) != EOF)
     {
         int x = convert(dict[c]);
-        //printf ("%d\n", x);
         while (x != 1)
         {
             sum += (x % 2) * pow(2, 7 - count);
@@ -229,6 +234,7 @@ void Compression (char* inputFileName, char* outputFileName)
             }
         }
 	}
+    printf ("%d\n", count);
 
     if (count != 0)
     {
@@ -245,21 +251,20 @@ void Compression (char* inputFileName, char* outputFileName)
 
 void Decoding (char* archiveName, char* fileNameToDecode)
 {
-    printf ("%s\n", archiveName);
+    //printf ("%s\n", archiveName);
     FILE* archive = fopen (archiveName, "rb");
     FILE* decodedFile = fopen (fileNameToDecode, "wb");
-    int dictionary[100000];
-    for (int i = 0; i < 100000; ++i)
-        dictionary[i] = 0;
-    char* ans[256];
-    strcpy (ans, "");
+    int* dictionary = (int*)calloc(256, sizeof(int));
     int n = fgetc(archive);
+    n += 1;
     for (int i = 0; i < n; ++i)
     {
         int x = getc (archive);
         int y = getc (archive);
         int z = getc (archive);
-        dictionary[y * 256 + z] = x;
+        int t = getc (archive);
+        dictionary[x] = y * 256 * 256 + z * 256 + t;
+        printf ("--%d %d\n", x, dictionary[x]);
     }
     int ft[2], t = 1;
     int c = getc(archive);
@@ -277,11 +282,19 @@ void Decoding (char* archiveName, char* fileNameToDecode)
         {
             t = t*2 + x%2;
             x /= 2;
-            if (dictionary[t] != 0)
+
+            int q = 0;
+            int p = 0;
+            for (; p < 256; ++p)
+                if (dictionary[p] == t)
+                {
+                    q = 1;
+                    break;
+                }
+
+            if (q)
             {
-                char* ch[1];
-                ch[0] = (char*)dictionary[t];
-                putc (dictionary[t], decodedFile);
+                putc (p, decodedFile);
                 t = 1;
             }
         }
@@ -310,13 +323,11 @@ void Decoding (char* archiveName, char* fileNameToDecode)
 int main(int argc, char* argv[])
 {
     char *archiveName = "data.arc",
-        *fileNameToDecode = "util/output.af",
-        *companationFileName = "util/companation.af";
+        *fileNameToDecode = "output.txt",
+        *companationFileName = "input.txt";
 
-    /**
     Compression (companationFileName, archiveName);
     Decoding (archiveName, fileNameToDecode);
-    **/
 
     for (int i = 0; i < argc; ++i)
     {
