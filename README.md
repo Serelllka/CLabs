@@ -1,16 +1,16 @@
 # CLabs
-## Lab 1
-## Lab 2
-## Lab 3
-## Lab 4
-## Lab 5
-## Lab 6
-## Lab 7
-## Lab 8
-## Lab 9
-## Lab 10
-## Lab 11
-## Lab 12
-## Lab 13
-## Lab 14
-## Lab 15
+## Lab 1  ✔️ (completed + defended + posted)
+## Lab 2  ✔️ (completed + defended + posted)
+## Lab 3  ✔️ (completed + defended + posted)
+## Lab 4  ✔️ (completed + defended + posted)
+## Lab 5  ✔️ (completed + defended + posted)
+## Lab 6  ✔️ (completed + defended + posted)
+## Lab 7  ✔️ (completed + defended + posted)
+## Lab 8  ✔️ (completed + defended + posted)
+## Lab 9  ✔️ (completed + defended + posted)
+## Lab 10 ✔️ (completed + defended + posted)
+## Lab 11 ✔️ (completed + defended + posted)
+## Lab 12 ✔️ (completed + defended + posted)
+## Lab 13 ✔️ (just completed)
+## Lab 14 ✔️ (completed + defended + posted)
+## Lab 15 ✔️ (completed + posted)
