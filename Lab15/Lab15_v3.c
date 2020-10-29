@@ -61,6 +61,81 @@ struct Node* join (struct Node* left, struct Node* right)
     return c;
 };
 
+void Create(char* archiveName, int filecount, char* files[], const int iterator)
+{
+    int i;
+    int temp;
+    FILE* archive = fopen(archiveName, "wb");
+    FILE* file;
+    unsigned long long int nameandsize[128];
+    for (i = iterator; i < filecount; i++)
+    {
+        file = fopen(files[i], "rb");
+        if (file == NULL)
+            continue;
+        fseek(file, 0, SEEK_END);
+        nameandsize[i - iterator] = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        fclose(file);
+    }
+    for (i = 0; i < filecount - iterator; i++)
+    {
+        fprintf(archive, "< %s : %llu >", files[i + iterator], nameandsize[i]);
+    }
+    fprintf(archive, "\n");
+    for (i = iterator; i < filecount; i++)
+    {
+        file = fopen(files[i], "rb");
+        while ((temp = getc(file)) != EOF)
+            putc(temp, archive);
+        fclose(file);
+    }
+    fclose (archive);
+
+}
+
+void Extract(char* archive){
+    FILE* arch = fopen(archive, "rb+wb");
+    unsigned long long int  now_position = 0;
+    unsigned long long int  start_position = 0;
+    int c;
+    while ((c = getc(arch)) != EOF) {
+        start_position++;
+        if (c == '\n')
+	        break;
+    }
+    fseek(arch, 0, SEEK_SET);
+    char filename[128] = {0};
+    unsigned long long int  filesize;
+    FILE *file;
+    while (fscanf(arch, "< %s : %llu >", filename, &filesize) != 0) {
+        file = fopen(filename, "wb");
+        if (file == NULL)
+			break;
+        now_position = ftell(arch);
+        fseek(arch, start_position, SEEK_SET);
+        start_position += filesize;
+        while (filesize-- > 0)
+            putc((c = getc(arch)), file);
+        fseek(arch, now_position, SEEK_SET);
+        fclose(file);
+    }
+	printf("\n + Unzipping sucssess + \n");
+}
+
+void List(char* archiveName)
+{
+    FILE* archive = fopen(archiveName, "rb");
+    char filename[256] = {0};
+    unsigned long long size;
+    printf("Files:\n");
+    while (fscanf(archive, "< %s : %llu >", filename, &size) != 0)
+    {
+        printf("%s\n", filename);
+    }
+    fclose(archive);
+}
+
 void Compression (char* inputFileName, char* outputFileName)
 {
     FILE* inputFile = fopen (inputFileName, "rb");
@@ -133,7 +208,6 @@ void Compression (char* inputFileName, char* outputFileName)
             putc (i, outputFile);
             int n = strlen(dict[i]);
             putc (n, outputFile);
-            printf("%c- -%s %d\n", i, dict[i], n);
             for (int j = 0; j < n; ++j)
             {
                 t = t * 2 + (dict[i][j] == '0' ? 0 : 1);
@@ -169,7 +243,6 @@ void Compression (char* inputFileName, char* outputFileName)
             }
         }
 	}
-    printf ("%d\n", count);
 
     if (count != 0)
     {
@@ -214,7 +287,7 @@ void Decoding (char* archiveName, char* fileNameToDecode)
             int a = getc (archive);
             toch (a, dict[x], y / 8 * 8, y % 8);
         }
-        printf ("%c- -%s\n", x, dict[x]);
+        //  printf ("%c- -%s\n", x, dict[x]);
     }
     //reading the alphabet completed
     printf("Alphabet restored\n");
@@ -241,7 +314,6 @@ void Decoding (char* archiveName, char* fileNameToDecode)
 
             int q = 0;
             int p = 0;
-            //printf ("%d\n", t);
             for (; p < 256; ++p)
                 if (strcmp(dict[p], str) == 0)
                 {
@@ -251,7 +323,6 @@ void Decoding (char* archiveName, char* fileNameToDecode)
 
             if (q)
             {
-                //printf("%c\n", p);
                 putc (p, decodedFile);
                 t = 0;
                 strcpy(str, "");
@@ -287,11 +358,35 @@ void Decoding (char* archiveName, char* fileNameToDecode)
 int main(int argc, char* argv[])
 {
     char *archiveName = "data.arc",
-        *fileNameToDecode = "testout.jpg",
-        *companationFileName = "test.jpg";
+        *fileNameToDecode = "util/fileToDecode.of",
+        *companationFileName = "util/fileToCompress.txt";
 
-    Compression (companationFileName, archiveName);
+    //Compression (companationFileName, archiveName);
     Decoding (archiveName, fileNameToDecode);
+    Extract(fileNameToDecode);
+
+    for (int i = 0; i < argc; ++i)
+    {
+        if (!strcmp("--file", argv[i]))
+        {
+            archiveName = argv[i + 1];
+        }
+        if (!strcmp("--create", argv[i]))
+        {
+            Create (companationFileName, argc, argv, i + 1);
+            Compression (companationFileName, archiveName);
+        }
+        if(!strcmp("--extract", argv[i]))
+        {
+            Decoding (archiveName, fileNameToDecode);
+            Extract(fileNameToDecode);
+        }
+        if(!strcmp("--list", argv[i]))
+        {
+            Decoding (archiveName, fileNameToDecode);
+            List(fileNameToDecode);
+        }
+    }
 
     return 0;
 }
