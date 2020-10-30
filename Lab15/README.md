@@ -1,16 +1,15 @@
-# CLabs
-### Lab 1  ✔️ (completed + defended + posted)
-### Lab 2  ✔️ (completed + defended + posted)
-### Lab 3  ✔️ (completed + defended + posted)
-### Lab 4  ✔️ (completed + defended + posted)
-### Lab 5  ✔️ (completed + defended + posted)
-### Lab 6  ✔️ (completed + defended + posted)
-### Lab 7  ✔️ (completed + defended + posted)
-### Lab 8  ✔️ (completed + defended + posted)
-### Lab 9  ✔️ (completed + defended + posted)
-### Lab 10 ✔️ (completed + defended + posted)
-### Lab 11 ✔️ (completed + defended + posted)
-### Lab 12 ✔️ (completed + defended + posted)
-### Lab 13 ✔️ (just completed)
-### Lab 14 ✔️ (completed + defended + posted)
-### Lab 15 ✔️ (completed + posted)
+# Лабораторная работа №15
+Разработка программы по архивированию и распаковке нескольких файлов в один архив.
+## Архиватор должен:
+* Уметь архивировать несколько (один и более) указаных файлов в архив в расширением __*.arc__
+* Уметь распаковывать файловых архив, извлекая изначально запаковонные файлы
+* Предоставлять список файлов упакованных в архиве
+* Сжимать и разжимать данные при архивировании  с помощью алгоритма Хаффмана
+## Архиватор выполнен в виде консольного приложения, принимающего в качестве аргументов следущие параметры:
+* __--file {FILE_NAME}__ - Имя файлового архива с которым будет работать архиватор (по-умолчанию data.arc)
+* __--create {FILE_NAME_1, FILE_NAME_2...}__ - Команда для создание файлового архива 
+* __--extract__ - Команда для извлечения из файлового архива файлов
+## Примеры использования:
+* __--create A.txt B.txt__ - создание файлового архива с именем data.arc, содержащего файлы _A.txt_ и _B.txt_
+* __--file archive.arc --create A.txt B.png__ - создание файлового архива с именем archive.arc, содержащего файлы _A.txt_ и _B.txt_
+* __--file archive.arc --extract__ - распаковка архива с именем archive.arc
