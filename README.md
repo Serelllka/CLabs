@@ -11,6 +11,6 @@
 ### Lab 10 ✔️ (completed + defended + posted)
 ### Lab 11 ✔️ (completed + defended + posted)
 ### Lab 12 ✔️ (completed + defended + posted)
-### Lab 13 ✔️ (completed)
+### Lab 13 ✔️ (completed + defended)
 ### Lab 14 ✔️ (completed + defended)
 ### Lab 15 ✔️ (completed)
