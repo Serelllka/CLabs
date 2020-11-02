@@ -355,6 +355,7 @@ void Decoding (char* archiveName, char* fileNameToDecode)
 
 int main(int argc, char* argv[])
 {
+    mkdir("util");
     char *archiveName = "data.arc",
         *fileNameToDecode = "util/fileToDecode.of",
         *companationFileName = "util/fileToCompress.txt";
